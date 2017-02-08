@@ -22,9 +22,9 @@ def search(request):
 
     # try parsing dates according to ISO8601
     try:
-        if event_date && event_date!='null':
+        if event_date and event_date!='null':
             event_date=datetime.strptime(event_date,"%Y-%m-%d")
-        if reference_date && reference_date!='null':
+        if reference_date and reference_date!='null':
             reference_date=datetime.strptime(reference_date,"%Y-%m-%d")
     except ValueError as e:
         return HttpResponseBadRequest('date should be <b>ISO8601</b> format')
@@ -77,15 +77,15 @@ def query(extent,keys,event_date,reference_date):
     ' ?e ev:hasDate ?d . ','?e ev:hasArea ?a . ', '?a ev:hasName ?n . ',' ?a geo:hasGeometry ?g . ',  
     ' ?g geo:asWKT ?w .'));
     filters=[]
-    if event_date or event_date == 'null':
+    if event_date and event_date != 'null':
         filters.append("?d < '" + str(event_date) + "'^^xsd:dateTime")
-    if reference_date or reference_date == 'null':
+    if reference_date and reference_date != 'null':
         filters.append("?d > '" + str(reference_date) + "'^^xsd:dateTime")
-    if keys or keys == 'null':
+    if keys and keys != 'null':
         filters.append("regex(?t, '" + str(keys) + "','i')")
-    if extent or extent == 'null':
+    if extent and extent != 'null':
         filters.append("strdf:intersects(?w,'" + str(extent) + "')")
-    if filters or extent == 'null':
+    if filters and extent != 'null':
         where += 'FILTER('+' && '.join(filters) + ")}"
     else:
         where += '}'

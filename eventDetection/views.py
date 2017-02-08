@@ -18,7 +18,7 @@ def search(request):
         event_date=request.GET.get('event_date',None)
         reference_date=request.GET.get('reference_date',None)
     except MultiValueDictKeyError as e:
-        return HttpResponse('Missing parameters. Please provide all: <ol><li>extent</li><li>event_date</li><li>reference_date</li><li>keys</li></ol>')
+        return HttpResponseBadRequest('Missing parameters. Please provide all: <ol><li>extent</li><li>event_date</li><li>reference_date</li><li>keys</li></ol>')
 
     # try parsing dates according to ISO8601
     try:
@@ -27,7 +27,7 @@ def search(request):
         if reference_date && reference_date!='null':
             reference_date=datetime.strptime(reference_date,"%Y-%m-%d")
     except ValueError as e:
-        return HttpResponse('date should be <b>ISO8601</b> format')
+        return HttpResponseBadRequest('date should be <b>ISO8601</b> format')
     
     if keys:
         keys = keys.replace(",", "|");

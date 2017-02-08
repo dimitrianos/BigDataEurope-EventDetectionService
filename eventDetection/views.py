@@ -37,6 +37,7 @@ def search(request):
     
     headers = {'content-type': 'application/x-www-form-urlencoded', 'Accept' : 'application/sparql-results+xml'}
     url = "http://semagrow_bde:8080/SemaGrow/sparql"
+    #url="http://test.strabon.di.uoa.gr/MELODIES/Query";
     params = {"query" : q, 'format':'SPARQL/XML'}
     r=requests.post(url, params=params, headers=headers)
 
@@ -48,20 +49,38 @@ def search(request):
     events={}
     for result in results:
         bindings=result.findall('{http://www.w3.org/2005/sparql-results#}binding')
+        #print(bindings)
         #bindings[0][0].text # ignore this one
-        event_id=bindings[1][0].text
-        title=bindings[2][0].text
-        date=bindings[3][0].text
-        gwkt=bindings[4][0].text
-        name=bindings[5][0].text
-        event={'event_id':event_id,'title':title,'date':date,'geometries':[gwkt],'name':name}
+        event_id=''
+        title=''
+        date=''
+        gwkt=''
+        name=''
+        for binding in bindings:
+            if binding.attrib['name'] == 'id':
+                event_id=binding[0].text
+            elif binding.attrib['name'] == 't':
+                title=binding[0].text
+            elif binding.attrib['name'] == 'd':
+                date=binding[0].text
+            elif binding.attrib['name'] == 'w':
+                gwkt=binding[0].text
+            elif binding.attrib['name'] == 'n':
+                name=binding[0].text
+
+        # event_id=bindings[1][0].text
+        # title=bindings[2][0].text
+        # date=bindings[3][0].text
+        # gwkt=bindings[4][0].text
+        # name=bindings[5][0].text
+        event={'id':event_id,'title':title,'eventDate':date,'areas':[{'name':name,'geometry':gwkt}]}
         
         #if event's id already in our dictionary then add the new geometry to its list of geometries
         if event_id in events:
-            events[event_id]['geometries'].append(gwkt)
+            events[event_id]['areas'].append({'name':name,'geometry':gwkt})
         else:
             events[event_id]=event
-    return HttpResponse(json.dumps(events) , content_type="application/json")
+    return HttpResponse(json.dumps(list(events.values())) , content_type="application/json")
 
 # Build the query
 def query(extent,keys,event_date,reference_date):
@@ -91,4 +110,5 @@ def query(extent,keys,event_date,reference_date):
         where += '}'
 
     q = '\n'.join((prefixes ,select , where ))
+    #q = "SELECT distinct ?e ?id ?t ?d ?w ?n WHERE {BIND(<http://mpla> AS ?t)}"
     return q
